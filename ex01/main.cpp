@@ -6,7 +6,7 @@
 /*   By: hladeiro <hladeiro@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 18:35:32 by hladeiro          #+#    #+#             */
-/*   Updated: 2026/04/28 18:40:55 by hladeiro         ###   ########.fr       */
+/*   Updated: 2026/04/28 18:43:49 by hladeiro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,9 +36,9 @@ int main(void)
               << "\", value=" << deserialized->value << std::endl;
 
     if (deserialized == original)
-        std::cout << "\n Pointers match!" << std::endl;
+        std::cout << "\nPointers match!" << std::endl;
     else
-        std::cout << "\n Pointers do not match!" << std::endl;
+        std::cout << "\nPointers do not match!" << std::endl;
 
     delete original;
     return 0;
