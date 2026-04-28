@@ -6,7 +6,7 @@
 /*   By: hladeiro <hladeiro@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/04/28 17:17:41 by hladeiro          #+#    #+#             */
-/*   Updated: 2026/04/28 17:39:17 by hladeiro         ###   ########.fr       */
+/*   Updated: 2026/04/28 18:14:50 by hladeiro         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,60 +19,17 @@ ScalarConverter::~ScalarConverter() {}
 
 static bool isChar(const std::string& s)
 {
-    return (s.length() == 3 && s[0] == '\'' && s[2] == '\'');
-}
-
-static bool isInt(const std::string& s)
-{
-    if (s.empty()) return false;
-    size_t i = 0;
-    if (s[0] == '-' || s[0] == '+') i++;
-    for (; i < s.length(); ++i)
-        if (!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
-    return true;
-}
-
-static bool isFloat(const std::string& s)
-{
-    if (s == "-inff" || s == "+inff" || s == "nanf")
+    if (s.length() == 3 && s[0] == '\'' && s[2] == '\'')
         return true;
-    if (s.empty() || s[s.length()-1] != 'f') return false;
-    std::string tmp = s.substr(0, s.length()-1);
-    if (tmp.empty()) return false;
-    // Allow one dot and digits
-    bool hasDot = false;
-    size_t i = 0;
-    if (tmp[0] == '-' || tmp[0] == '+') i++;
-    for (; i < tmp.length(); ++i)
-    {
-        if (tmp[i] == '.')
-        {
-            if (hasDot) return false;
-            hasDot = true;
-        }
-        else if (!std::isdigit(static_cast<unsigned char>(tmp[i]))) return false;
-    }
-    return true;
+    if (s.length() == 1 && std::isprint(static_cast<unsigned char>(s[0])))
+        return true;
+    return false;
 }
 
-static bool isDouble(const std::string& s)
+static bool isPseudoLiteral(const std::string& s)
 {
-    if (s == "-inf" || s == "+inf" || s == "nan")
-        return true;
-    if (s.empty()) return false;
-    bool hasDot = false;
-    size_t i = 0;
-    if (s[0] == '-' || s[0] == '+') i++;
-    for (; i < s.length(); ++i)
-    {
-        if (s[i] == '.')
-        {
-            if (hasDot) return false;
-            hasDot = true;
-        }
-        else if (!std::isdigit(static_cast<unsigned char>(s[i]))) return false;
-    }
-    return true;
+    return (s == "-inff" || s == "+inff" || s == "nanf" ||
+            s == "-inf"  || s == "+inf"  || s == "nan");
 }
 
 static void printChar(double value)
@@ -105,10 +62,7 @@ static void printFloat(double value)
     else if (std::isinf(value))
         std::cout << (value < 0 ? "-inff" : "+inff");
     else
-    {
-        std::cout << std::fixed << std::setprecision(1)
-                  << static_cast<float>(value) << "f";
-    }
+        std::cout << std::fixed << std::setprecision(1) << static_cast<float>(value) << "f";
     std::cout << std::endl;
 }
 
@@ -120,9 +74,7 @@ static void printDouble(double value)
     else if (std::isinf(value))
         std::cout << (value < 0 ? "-inf" : "+inf");
     else
-    {
         std::cout << std::fixed << std::setprecision(1) << value;
-    }
     std::cout << std::endl;
 }
 
@@ -137,26 +89,27 @@ void ScalarConverter::convert(const std::string& literal)
     double value = 0.0;
 
     if (isChar(literal))
+        value = static_cast<double>(literal.length() == 1 ? literal[0] : literal[1]);
+    else if (isPseudoLiteral(literal))
     {
-        value = static_cast<double>(literal[1]);
+        if (literal == "nan" || literal == "nanf")
+            value = NAN;
+        else if (literal[0] == '-')
+            value = -INFINITY;
+        else
+            value = INFINITY;
     }
-    else if (isInt(literal) || isFloat(literal) || isDouble(literal) ||
-             literal == "-inff" || literal == "+inff" || literal == "nanf" ||
-             literal == "-inf" || literal == "+inf" || literal == "nan")
+    else
     {
         char* endptr = NULL;
         value = std::strtod(literal.c_str(), &endptr);
 
-        if (endptr == literal.c_str() || *endptr != '\0')
+        std::string remaining(endptr);
+        if (!remaining.empty() && !(remaining == "f" && literal[literal.size()-1] == 'f'))
         {
             std::cout << "Error: invalid literal" << std::endl;
             return;
         }
-    }
-    else
-    {
-        std::cout << "Error: invalid literal" << std::endl;
-        return;
     }
 
     printChar(value);
